@@ -62,19 +62,19 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full px-6 md:px-10 py-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center space-x-3 mb-1">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saturday, 17 October 2026</span>
-            <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase">Demo Environment</span>
+            {/* <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saturday, 17 October 2026</span> */}
+            {/* <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase">Demo Environment</span> */}
           </div>
           <h1 className="text-3xl font-extrabold text-[#0f172a]">Inventory Optimization</h1>
           <p className="text-sm text-slate-500 mt-1">Monitor stock levels and replenishment recommendations.</p>
         </div>
-        <button className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+        {/* <button className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
           + Add product
-        </button>
+        </button> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
