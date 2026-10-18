@@ -13,6 +13,7 @@ function App() {
         
         {/* Sidebar stays visible on the left across all pages */}
         <Sidebar />
+        
 
         {/* Main content area dynamically changes based on the active route */}
         <main style={{ flex: 1, minWidth: 0 }}>
