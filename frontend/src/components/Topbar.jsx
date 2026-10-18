@@ -10,7 +10,7 @@ export default function Topbar() {
       {/* Left side: Breadcrumbs (Static for now, can be dynamic later) */}
       <div className="text-sm">
         <span className="text-slate-400">Workspace / </span>
-        <span className="font-bold text-slate-800">Product Requests</span>
+        <span className="font-bold text-slate-800">Incoming Requests</span>
       </div>
 
       {/* Right side: Role Switcher & Profile */}
