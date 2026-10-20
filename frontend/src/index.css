@@ -210,3 +210,11 @@ h1, h2, h3 {
   font-size: 16px;
   margin-bottom: 6px;
 }
+@theme {
+  --color-brand: #1677ff;
+  --color-ink: #172b4d;
+  --color-muted: #718096;
+  --color-line: #e5eaf2;
+  --color-surface: #f5f7fb;
+  --color-accent: #19b38a;
+}
