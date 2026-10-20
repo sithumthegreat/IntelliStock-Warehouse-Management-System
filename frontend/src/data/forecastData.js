@@ -88,19 +88,11 @@ export const accuracyRows = [
 ]
 
 export const contextEvents = [
-  {
-    name: 'Deepavali Promotion',
-    type: 'Promotion',
-    date: '20 Oct 2026',
-    impact: '+18% expected demand',
-  },
-  {
-    name: 'Year-end Seasonal Demand',
-    type: 'Seasonal',
-    date: '01 Dec 2026',
-    impact: '+12% expected demand',
-  },
+  { id: 1, name: 'Deepavali Promotion', type: 'Promotion', date: '20 Oct 2026', impact: '+18% expected demand' },
+  { id: 2, name: 'Year-end Season', type: 'Seasonal', date: '01 Dec 2026', impact: '+12% expected demand' },
 ]
+
+export const eventTypes = ['Promotion', 'Holiday', 'Seasonal', 'Campaign', 'Other']
 
 export const explainSummary =
   'Projected demand increase is linked to the Deepavali promotion, year-end seasonality and recent sales trends. Prediction range: ±8% of the forecast.'

@@ -5,7 +5,6 @@ import StatCard from '../../components/StatCard'
 import Table from '../../components/Table'
 import {
   chartData,
-  contextEvents,
   explainSummary,
   forecastProducts,
   seasonalIndex,
@@ -34,7 +33,7 @@ const productColumns = [
   },
 ]
 
-export default function DashboardTab({ onGoToApproval }) {
+export default function DashboardTab({ events, onGoToApproval }) {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-3">
@@ -75,7 +74,7 @@ export default function DashboardTab({ onGoToApproval }) {
           height={240}
         />
         <div className="mt-4">
-          <Table columns={eventColumns} rows={contextEvents} />
+          <Table columns={eventColumns} rows={events} />
         </div>
       </Card>
 
