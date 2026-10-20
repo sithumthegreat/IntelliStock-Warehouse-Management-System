@@ -1,8 +1,9 @@
+import Card from '../components/Card'
+
 export default function Placeholder({ title }) {
   return (
-    <div className="card">
-      <h2>{title}</h2>
-      <p className="muted">test</p>
-    </div>
+    <Card title={title}>
+      <p className="text-muted">test</p>
+    </Card>
   )
 }
