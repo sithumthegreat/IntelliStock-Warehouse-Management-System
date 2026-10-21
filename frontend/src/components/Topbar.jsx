@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { useRole } from '../context/RoleContext'
 import { NAV_GROUPS } from '../config/navigation'
+import UserMenu from './UserMenu'
 
 export default function Topbar() {
   const { currentRole, setCurrentRole, ROLES } = useRole()
@@ -23,13 +24,8 @@ export default function Topbar() {
           </svg>
         </button>
 
-        <span className="text-[10px] bg-emerald-50 text-emerald-600 font-bold px-2 py-1 rounded-full uppercase tracking-wide border border-emerald-100">
-          • Demo Environment
-        </span>
 
-        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-          R
-        </div>
+        <UserMenu />
 
         <select
           value={currentRole}
