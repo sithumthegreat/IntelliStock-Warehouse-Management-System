@@ -10,14 +10,7 @@ export default function AuthLayout({ children }) {
         {/* Dark blue overlay so the text stays readable over the photo */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a2150]/95 via-[#0d2f66]/45 to-[#0d2f66]/10" />
 
-        <div className="relative z-10 max-w-[520px] px-14 pb-14">
-          <h2 className="mb-2.5 text-[34px] font-extrabold leading-tight tracking-tight">
-            Stock the right amount, at the right time
-          </h2>
-          <p className="text-[15px] leading-relaxed text-[#d6e6ff]">
-            Forecast demand, set reorder points and follow every purchase order in one workspace.
-          </p>
-        </div>
+       
       </aside>
 
       <main className="flex items-start justify-center px-5 py-8 lg:items-center lg:px-12">
