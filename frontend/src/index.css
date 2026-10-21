@@ -1,4 +1,9 @@
+
 @import "tailwindcss";
+
+/* ========================================
+   GLOBAL THEME
+======================================== */
 
 :root {
   --blue: #1677ff;
@@ -8,6 +13,11 @@
   --bg: #f5f7fb;
   --green: #19b38a;
 
+  /* Sidebar settings */
+  --sidebar-width: 245px;
+  --sidebar-peek: 25px;
+  --layout-transition: 0.3s ease;
+
   font-family: Inter, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -15,11 +25,17 @@
   background-color: var(--bg);
 }
 
+/* ========================================
+   GLOBAL RESET
+======================================== */
+
 * {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   min-height: 100%;
 }
 
@@ -32,7 +48,9 @@ body {
   font: 13px Inter, Arial, sans-serif;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   margin: 0;
 }
 
@@ -40,42 +58,103 @@ h1, h2, h3 {
   color: var(--muted);
 }
 
-/* Layout */
+/* ========================================
+   MAIN APPLICATION LAYOUT
+======================================== */
+
+.shell {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* Main dashboard area */
+.main {
+  margin-left: var(--sidebar-peek);
+  min-width: 0;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  transition: margin-left var(--layout-transition);
+}
+
+/* Move the complete main area when
+   the sidebar is expanded */
+.shell:has(.side:hover) .main,
+.shell:has(.side:focus-within) .main {
+  margin-left: var(--sidebar-width);
+}
+
+/* Dashboard page content */
+.content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+
+  padding: 28px;
+  background: var(--bg);
+}
+
+/* ========================================
+   SIDEBAR
+======================================== */
 
 .side {
   position: fixed;
-  inset: 0 auto 0 0;
-  width: 245px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  width: var(--sidebar-width);
+  height: 100vh;
+
   background: #fff;
   border-right: 1px solid var(--line);
+
   padding: 18px 12px;
+
   display: flex;
   flex-direction: column;
+
   overflow-y: auto;
-  z-index: 3;
-  
-  /* --- HIDE SIDEBAR & ADD SMOOTH TRANSITION --- */
-  transform: translateX(-220px); /* Hides most of it, leaving a 25px trigger strip */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow-x: hidden;
+
+  z-index: 30;
+
+  /* Keep 25px visible initially */
+  transform: translateX(
+    calc(-1 * (var(--sidebar-width) - var(--sidebar-peek)))
+  );
+
+  transition:
+    transform var(--layout-transition),
+    box-shadow var(--layout-transition);
 }
 
-.side:hover {
-  transform: translateX(0); /* Slides out fully */
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.08); /* Adds a subtle shadow over content */
+/* Expand sidebar on hover or keyboard focus */
+.side:hover,
+.side:focus-within {
+  transform: translateX(0);
+
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.08);
 }
 
-.main {
-  /* Since the sidebar is mostly hidden now, we remove the large left margin */
-  margin-left: 25px; /* Matches the small visible strip of the hidden sidebar */
-  min-height: 100vh;
-  transition: margin-left 0.3s ease;
+/* Sidebar scroll */
+.side::-webkit-scrollbar {
+  width: 5px;
 }
 
-.content {
-  padding: 28px;
+.side::-webkit-scrollbar-thumb {
+  background: #d8e2ef;
+  border-radius: 8px;
 }
 
-/* Sidebar */
+/* ========================================
+   SIDEBAR BRAND
+======================================== */
+
 .brand {
   display: flex;
   align-items: center;
@@ -93,34 +172,54 @@ h1, h2, h3 {
 .logo {
   background: var(--blue);
   color: #fff;
+
   border-radius: 10px;
+
   width: 38px;
   height: 38px;
+  min-width: 38px;
+
   display: grid;
   place-items: center;
+
   font-weight: 800;
+
   box-shadow: 0 5px 15px #1677ff30;
 }
+
+/* ========================================
+   SIDEBAR NAVIGATION
+======================================== */
 
 .navlabel {
   font-size: 9px;
   letter-spacing: 1px;
   text-transform: uppercase;
+
   color: #9aa5b5;
   font-weight: 800;
+
   margin: 17px 10px 8px;
 }
 
 .navitem {
   display: flex;
   align-items: center;
+
   gap: 10px;
   padding: 10px;
+
   border-radius: 9px;
+
   color: #4a5568;
   text-decoration: none;
+
   font-weight: 600;
   margin-bottom: 2px;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .navitem:hover {
@@ -134,36 +233,71 @@ h1, h2, h3 {
 
 .navicon {
   width: 18px;
+  min-width: 18px;
   text-align: center;
 }
 
+/* ========================================
+   SIDEBAR FOOTER
+======================================== */
+
 .sidefoot {
   margin-top: auto;
+
   border-top: 1px solid #f0f3f8;
   padding-top: 14px;
+
   color: #7c8ba0;
+
   font-size: 10px;
   line-height: 1.7;
 }
 
-/* Top bar */
+/* ========================================
+   TOP BAR
+======================================== */
+
+/* Existing .top class support */
 .top {
   height: 70px;
+  min-height: 70px;
+  width: 100%;
+
   background: #fff;
   border-bottom: 1px solid var(--line);
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   padding: 0 28px;
+
   position: sticky;
   top: 0;
-  z-index: 2;
+
+  z-index: 10;
 }
 
+/* Your current Topbar.jsx uses Tailwind
+   classes instead of .top.
+   This ensures its container stays
+   within the main layout. */
+
+.main > :first-child {
+  flex-shrink: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Topbar heading */
 .top h1 {
   font-size: 20px;
   font-weight: 800;
 }
+
+/* ========================================
+   USER INFORMATION
+======================================== */
 
 .userchip {
   display: flex;
@@ -181,24 +315,85 @@ h1, h2, h3 {
 .avatar {
   width: 36px;
   height: 36px;
+
   border-radius: 50%;
+
   background: #eaf2ff;
   color: var(--blue);
+
   display: grid;
   place-items: center;
+
   font-weight: 800;
   font-size: 12px;
 }
 
-/* Cards */
+/* ========================================
+   CARDS
+======================================== */
+
 .card {
   background: #fff;
+
   border: 1px solid var(--line);
   border-radius: 14px;
+
   padding: 22px;
 }
 
 .card h2 {
   font-size: 16px;
   margin-bottom: 6px;
+}
+
+/* ========================================
+   RESPONSIVE LAYOUT
+======================================== */
+
+@media (max-width: 768px) {
+
+  /* On small screens, use an overlay
+     instead of shrinking the content. */
+
+  .main {
+    margin-left: var(--sidebar-peek);
+  }
+
+  .shell:has(.side:hover) .main,
+  .shell:has(.side:focus-within) .main {
+    margin-left: var(--sidebar-peek);
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .side {
+    z-index: 40;
+  }
+
+  .top {
+    padding: 0 16px;
+  }
+
+  /* Allow tables to scroll horizontally */
+  .content table {
+    min-width: 600px;
+  }
+
+  .content > div {
+    max-width: 100%;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .side,
+  .main,
+  .navitem {
+    transition: none;
+  }
 }
