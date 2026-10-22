@@ -9,6 +9,8 @@ export const NAV_GROUPS = [
       { path: '/requests', title: 'Requests', icon: '☷' },
       { path: '/suppliers', title: 'Supplier Selection', icon: '⇄' },
       { path: '/goods-received', title: 'Goods Received', icon: '✓' },
+      { path: '/supplier-portal', title: 'Supplier Portal', icon: '⇄' },
+      
     ],
   },
   {

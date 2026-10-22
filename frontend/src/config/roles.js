@@ -11,7 +11,18 @@ export const ROLES = Object.keys(ROLE_INFO)
 export const PRIVILEGED_ROLES = ['Administrator', 'Warehouse Manager']
 export const needsApproval = (role) => PRIVILEGED_ROLES.includes(role)
 
-export const ROLE_LANDING = { 'Requesting Entity': '/requests', Supplier: '/suppliers' }
+export const ROLE_PAGES = {
+  Administrator: ['/dashboard', '/analytics', '/what-if', '/administration', '/notifications', '/profile', '/help'],
+  'Warehouse Manager': ['/dashboard', '/forecasting', '/import', '/inventory', '/requests', '/suppliers', '/goods-received', '/analytics', '/what-if', '/notifications', '/profile', '/help'],
+  'Warehouse Staff': ['/dashboard', '/inventory', '/goods-received', '/notifications', '/profile', '/help'],
+  'Requesting Entity': ['/requests', '/notifications', '/profile', '/help'],
+  Supplier: ['/supplier-portal', '/notifications', '/profile', '/help'],
+}
+
+export const canAccess = (role, pathname) =>
+  (ROLE_PAGES[role] ?? []).some((p) => pathname === p || pathname.startsWith(p + '/'))
+
+export const landingFor = (role) => ROLE_PAGES[role]?.[0] ?? '/login'
 
 export const DEMO_PASSWORD = 'intellistock'
 export const DEMO_ACCOUNTS = {

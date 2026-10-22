@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import { DEMO_ACCOUNTS, DEMO_PASSWORD, ROLE_LANDING } from '../../config/roles'
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, landingFor } from '../../config/roles'
 import { useAuth } from '../../context/AuthContext'
 import { useRole } from '../../context/RoleContext'
 import AuthLayout from './AuthLayout'
@@ -26,9 +26,8 @@ export default function Login() {
   const [password, setPassword] = useState(state?.email ? '' : DEMO_PASSWORD)
   const [message, setMessage] = useState('')
 
-  // Already signed in: go straight to the first page for this role
   if (currentUser) {
-    return <Navigate to={ROLE_LANDING[currentUser.role] ?? '/dashboard'} replace />
+    return <Navigate to={landingFor(currentUser.role)} replace />
   }
 
   const pickRole = (r) => {
@@ -44,7 +43,7 @@ export default function Login() {
       setMessage(MESSAGES[result.code])
       return
     }
-    setCurrentRole(result.user.role) // keeps the top bar role dropdown in sync
+    setCurrentRole(result.user.role) 
   }
 
   const submit = (ev) => {
