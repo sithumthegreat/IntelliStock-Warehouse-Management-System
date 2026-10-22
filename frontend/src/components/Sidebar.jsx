@@ -1,7 +1,15 @@
 import { NavLink } from 'react-router-dom'
 import { NAV_GROUPS } from '../config/navigation'
+import { canAccess } from '../config/roles'
+import { useAuth } from '../context/AuthContext'
 
 export default function Sidebar() {
+    const { currentUser } = useAuth()
+  // Keep only the pages this role may open, and drop groups that end up empty
+  const groups = NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => canAccess(currentUser?.role, i.path)),
+  })).filter((g) => g.items.length > 0)
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-[245px] flex-col overflow-y-auto border-r border-line bg-white px-3 py-[18px]">
       <div className="flex items-center gap-[11px] px-1.5 pb-1.5">
@@ -14,7 +22,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {NAV_GROUPS.map((group) => (
+            {groups.map((group) => (
         <div key={group.label}>
           <div className="mx-2.5 mb-2 mt-[17px] text-[9px] font-extrabold uppercase tracking-[1px] text-[#9aa5b5]">
             {group.label}
