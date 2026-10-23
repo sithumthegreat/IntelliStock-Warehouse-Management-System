@@ -44,6 +44,7 @@ export default function Login() {
       return
     }
     setCurrentRole(result.user.role) 
+    
   }
 
   const submit = (ev) => {
