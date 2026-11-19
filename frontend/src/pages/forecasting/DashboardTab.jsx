@@ -1,50 +1,99 @@
+
 import Badge from '../../components/Badge'
 import Card from '../../components/Card'
 import DemandChart from '../../components/DemandChart'
 import StatCard from '../../components/StatCard'
 import Table from '../../components/Table'
-import {
-  chartData,
-  explainSummary,
-  forecastProducts,
-  seasonalIndex,
-  shapFactors,
-  summaryStats,
-} from '../../data/forecastData'
+import { generateForecast } from '../../utils/forecastEngine'
 
-const eventColumns = [
-  { header: 'Event', cell: (e) => <b>{e.name}</b> },
-  { header: 'Type', cell: (e) => e.type },
-  { header: 'Date', cell: (e) => e.date },
-  { header: 'Expected impact', cell: (e) => e.impact },
-]
+const money = (value) => Number(value).toLocaleString()
 
-const productColumns = [
-  { header: 'Product', cell: (p) => <b>{p.name}</b> },
-  { header: 'Forecast (units)', cell: (p) => p.forecast.toLocaleString() },
-  { header: 'Interval', cell: (p) => `${p.low.toLocaleString()} – ${p.high.toLocaleString()}` },
-  {
-    header: 'Confidence',
-    cell: (p) => (
-      <Badge tone={p.confidence >= 85 ? 'green' : 'amber'}>
-        {p.confidence >= 85 ? 'High' : 'Low'} confidence · {p.confidence}%
-      </Badge>
-    ),
-  },
-]
+export default function DashboardTab({
+  sales = [],
+  events = [],
+  onGoToApproval,
+}) {
+  const result = generateForecast(sales, events)
 
-export default function DashboardTab({ events, onGoToApproval }) {
+  const productColumns = [
+    {
+      header: 'Product',
+      cell: (product) => <b>{product.name}</b>,
+    },
+    {
+      header: 'Forecast',
+      cell: (product) => money(product.forecast),
+    },
+    {
+      header: 'Prediction range',
+      cell: (product) =>
+        `${money(product.low)} – ${money(product.high)}`,
+    },
+    {
+      header: 'Confidence',
+      cell: (product) => (
+        <Badge tone={product.confidence >= 80 ? 'green' : 'amber'}>
+          {product.confidence}%
+        </Badge>
+      ),
+    },
+  ]
+
+  const eventColumns = [
+    { header: 'Event', cell: (event) => <b>{event.name}</b> },
+    { header: 'Type', cell: (event) => event.type },
+    { header: 'Start', cell: (event) => event.startDate || '—' },
+    { header: 'End', cell: (event) => event.endDate || '—' },
+    {
+      header: 'Expected impact',
+      cell: (event) => `${event.impact > 0 ? '+' : ''}${event.impact}%`,
+    },
+  ]
+
+  const stats = [
+    {
+      label: 'Historical sales',
+      value: money(result.totalHistorical),
+      note: `${result.availableMonths} months with recorded sales`,
+    },
+    {
+      label: 'Average monthly demand',
+      value: money(result.averageMonthly),
+      note: 'Based on available historical months',
+    },
+    {
+      label: 'Next 3 months forecast',
+      value: money(result.totalForecast),
+      note: 'Three-month moving average baseline',
+    },
+  ]
+
+  if (!result.hasData) {
+    return (
+      <Card title="Demand forecasting" subtitle="Historical sales data is required to generate forecasts.">
+        <div className="py-12 text-center">
+          <p className="text-3xl">📊</p>
+          <h3 className="mt-3 font-bold">No historical sales data</h3>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-[#718096]">
+            Import sales records through the Import Center. Once sales data is available,
+            IntelliStock can calculate a baseline forecast.
+          </p>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-3">
-        {summaryStats.map((stat) => (
+        {stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>
 
       <Card
         title="Demand forecast"
-        subtitle="Historical sales and forecast with prediction range"
+        subtitle="Historical sales compared with the next three months' baseline prediction"
         action={
           <button
             onClick={onGoToApproval}
@@ -54,61 +103,42 @@ export default function DashboardTab({ events, onGoToApproval }) {
           </button>
         }
       >
-        <DemandChart data={chartData} />
+        <DemandChart
+          data={result.chart}
+          pastLabel="Historical sales"
+          futureLabel="Baseline forecast"
+        />
+
         <div className="mt-4 rounded-[10px] border border-[#cfe0ff] bg-[#f2f7ff] p-3.5 text-xs leading-relaxed text-[#2a4a85]">
-          <b>Explainability summary</b>
-          <br />
-          {explainSummary}
+          <b>Forecast methodology</b>
+          <p className="mt-1">
+            Predictions use the average of the latest three available monthly
+            sales totals, adjusted by a bounded recent trend. The prediction
+            range is an illustrative uncertainty interval, not a statistically
+            calibrated confidence interval.
+          </p>
         </div>
       </Card>
 
       <Card
-        title="Seasonal trends & context impact"
-        subtitle="Seasonal demand index (100 = yearly average); highlighted months are forecast months"
+        title="Forecast by product"
+        subtitle="Estimated demand for each product using its recent monthly sales"
       >
-        <DemandChart
-          data={seasonalIndex}
-          pastLabel="Past seasonal index"
-          futureLabel="Forecast months"
-          unit=""
-          height={240}
-        />
-        <div className="mt-4">
-          <Table columns={eventColumns} rows={events} />
-        </div>
+        <Table columns={productColumns} rows={result.products} />
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Card title="Forecast by product" subtitle="Next-month demand with confidence interval and score">
-          <Table columns={productColumns} rows={forecastProducts} />
-        </Card>
-        <Card title="Explainability (SHAP)" subtitle="Top Factors driving the forecast">
-          <ul>
-            {shapFactors.map((f) => (
-              <li
-  key={f.name}
-  className="flex items-center gap-3 border-b border-line py-3 last:border-0"
->
-  <span className="w-40 text-xs">{f.name}</span>
-
-  <div className="h-2.5 flex-1 rounded-full bg-[#eef2f7]">
-    <div
-  className={`h-full rounded-full ${f.impact >= 0 ? 'bg-accent' : 'bg-[#e5484d]'}`}
-  style={{ width: `${Math.abs(f.impact) * 200}%` }}
-/>
-  </div>
-  <span className="w-12 text-right text-xs font-bold">
-  {f.impact > 0 ? '+' : ''}
-  {f.impact.toFixed(2)}
-</span>
-</li>
-            ))}
-          </ul>
-          <div className="mt-4 rounded-[10px] border border-[#cfe0ff] bg-[#f2f7ff] p-3.5 text-xs leading-relaxed text-[#2a4a85]">
-  Green factors raise demand, red factors lower it.
-</div>
-        </Card>
-      </div>
+      <Card
+        title="Business context events"
+        subtitle="Recorded events overlapping the forecast period"
+      >
+        {result.context.length ? (
+          <Table columns={eventColumns} rows={result.context} />
+        ) : (
+          <p className="py-5 text-center text-xs text-[#718096]">
+            No recorded events overlap the forecast period.
+          </p>
+        )}
+      </Card>
     </div>
   )
 }
