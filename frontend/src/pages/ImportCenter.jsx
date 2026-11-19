@@ -1,3 +1,4 @@
+
 import { useRef, useState } from 'react'
 import Badge from '../components/Badge'
 import Card from '../components/Card'
@@ -11,44 +12,68 @@ import {
   knownProducts,
 } from '../data/importData'
 import usePersistentState from '../hooks/usePersistentState'
-import { parseSalesCsv } from '../utils/salesCsv'
+import { parseSalesCsv, parseSalesExcel } from '../utils/salesCsv'
 
-const knownIds = knownProducts.map((p) => p.id)
-const templateHref = 'data:text/csv;charset=utf-8,' + encodeURIComponent(TEMPLATE_CSV)
-const nameOf = (id) => knownProducts.find((p) => p.id === id)?.name ?? id
-const money = (n) => `Rs. ${Number(n).toLocaleString()}`
-const statusTone = { Completed: 'green', 'Completed with errors': 'amber' }
+const knownIds = knownProducts.map((product) => product.id)
+const templateHref =
+  'data:text/csv;charset=utf-8,' + encodeURIComponent(TEMPLATE_CSV)
+
+const nameOf = (id) =>
+  knownProducts.find((product) => product.id === id)?.name ?? id
+
+const money = (value) => `Rs. ${Number(value).toLocaleString()}`
+
+const statusTone = {
+  Completed: 'green',
+  'Completed with errors': 'amber',
+}
 
 const formatSize = (bytes) =>
-  bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  bytes < 1024
+    ? `${bytes} B`
+    : bytes < 1024 * 1024
+      ? `${(bytes / 1024).toFixed(1)} KB`
+      : `${(bytes / 1024 / 1024).toFixed(1)} MB`
 
-// One badge that sums up the state of the chosen file
-const fileStatus = (f) => {
-  if (f.reading) return { tone: 'blue', text: 'Reading…' }
-  if (f.rows.length === 0) return { tone: 'red', text: 'Cannot import' }
-  if (f.errors.length > 0) return { tone: 'amber', text: 'Ready, with errors' }
+const fileStatus = (file) => {
+  if (file.reading) return { tone: 'blue', text: 'Reading…' }
+  if (!file.rows.length) return { tone: 'red', text: 'Cannot import' }
+  if (file.errors.length) return { tone: 'amber', text: 'Ready, with errors' }
   return { tone: 'green', text: 'Ready to import' }
 }
 
 const primaryBtn =
   'cursor-pointer rounded-lg bg-[#1677ff] px-4 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40'
+
 const altBtn =
   'cursor-pointer rounded-lg border border-[#e5eaf2] bg-white px-4 py-2.5 text-xs font-bold hover:bg-[#f3f6fb]'
-const linkBtn = 'cursor-pointer font-bold text-[#1677ff] hover:underline'
+
+const linkBtn =
+  'cursor-pointer font-bold text-[#1677ff] hover:underline'
 
 const rowColumns = [
-  { header: 'Date', cell: (r) => r.date },
-  { header: 'Product', cell: (r) => `${r.product} · ${nameOf(r.product)}` },
-  { header: 'Quantity', cell: (r) => r.quantity },
-  { header: 'Unit price', cell: (r) => money(r.price) },
-  { header: 'Validation', cell: () => <Badge tone="green">Valid</Badge> },
+  { header: 'Date', cell: (row) => row.date },
+  {
+    header: 'Product',
+    cell: (row) => `${row.product} · ${nameOf(row.product)}`,
+  },
+  { header: 'Quantity', cell: (row) => row.quantity },
+  { header: 'Unit price', cell: (row) => money(row.price) },
+  {
+    header: 'Validation',
+    cell: () => <Badge tone="green">Valid</Badge>,
+  },
 ]
 
 export default function ImportCenter() {
   const [sales, setSales] = usePersistentState('is_sales', initialSales)
-  const [history, setHistory] = usePersistentState('is_import_history', initialHistory)
-  const [file, setFile] = useState(null) // { name, rows, errors, warnings }
-  const [excluded, setExcluded] = useState([]) // line numbers the user chose to leave out
+  const [history, setHistory] = usePersistentState(
+    'is_import_history',
+    initialHistory
+  )
+
+  const [file, setFile] = useState(null)
+  const [excluded, setExcluded] = useState([])
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef(null)
 
@@ -57,90 +82,145 @@ export default function ImportCenter() {
     setExcluded([])
   }
 
-  const readFile = async (f) => {
-    if (!f) return
-    setExcluded([])
-    const info = { name: f.name, size: f.size, rows: [], errors: [], warnings: [], total: 0 }
-    setFile({ ...info, reading: true }) // show the file card straight away
+  const readFile = async (selectedFile) => {
+    if (!selectedFile) return
 
-    if (!/\.csv$/i.test(f.name)) {
+    setExcluded([])
+
+    const info = {
+      name: selectedFile.name,
+      size: selectedFile.size,
+      rows: [],
+      errors: [],
+      warnings: [],
+      total: 0,
+      reading: true,
+    }
+
+    setFile(info)
+
+    const extension = selectedFile.name.split('.').pop().toLowerCase()
+
+    try {
+      let result
+
+      if (extension === 'csv') {
+        result = parseSalesCsv(await selectedFile.text(), knownIds)
+      } else if (['xlsx', 'xls'].includes(extension)) {
+        result = await parseSalesExcel(selectedFile, knownIds)
+      } else {
+        throw new Error('Unsupported file type. Please upload CSV or Excel.')
+      }
+
       setFile({
         ...info,
+        ...result,
+        reading: false,
+      })
+    } catch (error) {
+      setFile({
+        ...info,
+        reading: false,
         errors: [
-          { line: '–', field: 'file', issue: 'Only .csv files are supported here. In Excel, use Save As > CSV.' },
+          {
+            line: '–',
+            field: 'file',
+            issue: error.message || 'Unable to read this file.',
+          },
         ],
       })
-      return
     }
-    setFile({ ...info, ...parseSalesCsv(await f.text(), knownIds) })
   }
 
-  const importable = file ? file.rows.filter((r) => !excluded.includes(r.line)) : []
+  const importable = file
+    ? file.rows.filter((row) => !excluded.includes(row.line))
+    : []
 
-  const setExclusion = (line, exclude) =>
-    setExcluded(exclude ? [...new Set([...excluded, line])] : excluded.filter((l) => l !== line))
+  const setExclusion = (line, exclude) => {
+    setExcluded((current) =>
+      exclude
+        ? [...new Set([...current, line])]
+        : current.filter((item) => item !== line)
+    )
+  }
 
   const commit = () => {
+    if (!file || !importable.length) return
+
     const stamp = Date.now()
-    setSales([
-      ...importable.map((r, i) => ({
-        id: `${stamp}-${i}`,
-        date: r.date,
-        product: r.product,
-        quantity: r.quantity,
-        price: r.price,
+
+    setSales((current) => [
+      ...importable.map((row, index) => ({
+        id: `${stamp}-${index}`,
+        date: row.date,
+        product: row.product,
+        quantity: row.quantity,
+        price: row.price,
       })),
-      ...sales,
+      ...current,
     ])
-    setHistory([
+
+    setHistory((current) => [
       {
         id: String(stamp),
         file: file.name,
-        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        date: new Date().toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
         records: importable.length,
-        status: file.errors.length ? 'Completed with errors' : 'Completed',
+        status:
+          file.errors.length || excluded.length
+            ? 'Completed with errors'
+            : 'Completed',
       },
-      ...history,
+      ...current,
     ])
-    setFile(null)
-    setExcluded([])
+
+    clearFile()
   }
 
-  const removeRecord = (id) => setSales(sales.filter((s) => s.id !== id))
+  const removeRecord = (id) => {
+    setSales((current) => current.filter((record) => record.id !== id))
+  }
 
   const errorColumns = [
-    { header: 'Row', cell: (e) => e.line },
-    { header: 'Field', cell: (e) => e.field },
+    { header: 'Row', cell: (error) => error.line },
+    { header: 'Field', cell: (error) => error.field },
     {
       header: 'Issue',
-      cell: (e) => (
+      cell: (error) => (
         <span className="flex items-center gap-2">
-          <Badge tone="red">Error</Badge> {e.issue}
+          <Badge tone="red">Error</Badge> {error.issue}
         </span>
       ),
     },
   ]
 
-  const rowOf = (line) => file.rows.find((r) => r.line === line)
+  const rowOf = (line) => file?.rows.find((row) => row.line === line)
+
   const warningColumns = [
-    { header: 'Row', cell: (w) => w.line },
-    { header: 'Date', cell: (w) => rowOf(w.line)?.date },
-    { header: 'Product', cell: (w) => rowOf(w.line)?.product },
-    { header: 'Qty', cell: (w) => rowOf(w.line)?.quantity },
+    { header: 'Row', cell: (warning) => warning.line },
+    { header: 'Date', cell: (warning) => rowOf(warning.line)?.date },
+    { header: 'Product', cell: (warning) => rowOf(warning.line)?.product },
+    { header: 'Qty', cell: (warning) => rowOf(warning.line)?.quantity },
     {
       header: 'Issue',
-      cell: (w) => (
+      cell: (warning) => (
         <span className="flex items-center gap-2">
-          <Badge tone="amber">Review</Badge> {w.issue}
+          <Badge tone="amber">Review</Badge> {warning.issue}
         </span>
       ),
     },
     {
       header: 'Action',
-      cell: (w) => (
+      cell: (warning) => (
         <select
-          value={excluded.includes(w.line) ? 'Exclude' : 'Keep'}
-          onChange={(e) => setExclusion(w.line, e.target.value === 'Exclude')}
+          value={excluded.includes(warning.line) ? 'Exclude' : 'Keep'}
+          onChange={(event) =>
+            setExclusion(warning.line, event.target.value === 'Exclude')
+          }
           className="rounded-lg border border-[#e5eaf2] bg-white px-2 py-1.5 text-xs"
         >
           <option>Keep</option>
@@ -151,14 +231,20 @@ export default function ImportCenter() {
   ]
 
   const salesColumns = [
-    { header: 'Date', cell: (r) => r.date },
-    { header: 'Product', cell: (r) => `${r.product} · ${nameOf(r.product)}` },
-    { header: 'Quantity', cell: (r) => r.quantity },
-    { header: 'Unit price', cell: (r) => money(r.price) },
+    { header: 'Date', cell: (row) => row.date },
+    {
+      header: 'Product',
+      cell: (row) => `${row.product} · ${nameOf(row.product)}`,
+    },
+    { header: 'Quantity', cell: (row) => row.quantity },
+    { header: 'Unit price', cell: (row) => money(row.price) },
     {
       header: 'Action',
-      cell: (r) => (
-        <button onClick={() => removeRecord(r.id)} className={linkBtn}>
+      cell: (row) => (
+        <button
+          onClick={() => removeRecord(row.id)}
+          className={linkBtn}
+        >
           Delete
         </button>
       ),
@@ -166,10 +252,20 @@ export default function ImportCenter() {
   ]
 
   const historyColumns = [
-    { header: 'File name', cell: (h) => <b>{h.file}</b> },
-    { header: 'Date', cell: (h) => h.date },
-    { header: 'Records', cell: (h) => h.records.toLocaleString() },
-    { header: 'Status', cell: (h) => <Badge tone={statusTone[h.status] ?? 'blue'}>{h.status}</Badge> },
+    { header: 'File name', cell: (item) => <b>{item.file}</b> },
+    { header: 'Date', cell: (item) => item.date },
+    {
+      header: 'Records',
+      cell: (item) => item.records.toLocaleString(),
+    },
+    {
+      header: 'Status',
+      cell: (item) => (
+        <Badge tone={statusTone[item.status] ?? 'blue'}>
+          {item.status}
+        </Badge>
+      ),
+    },
   ]
 
   const previewRows = file ? importable : sales
@@ -196,65 +292,82 @@ export default function ImportCenter() {
 
       <Card
         title="Import historical sales"
-        subtitle="Upload a CSV file (columns: date, product_id, quantity, price)"
+        subtitle="Upload CSV or Excel files (date, product_id, quantity, price)"
       >
         <div
           role="button"
           tabIndex={0}
-          onClick={() => inputRef.current.click()}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current.click()}
-          onDragOver={(e) => {
-            e.preventDefault()
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              inputRef.current?.click()
+            }
+          }}
+          onDragOver={(event) => {
+            event.preventDefault()
             setDragging(true)
           }}
           onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault()
+          onDrop={(event) => {
+            event.preventDefault()
             setDragging(false)
-            readFile(e.dataTransfer.files[0])
+            readFile(event.dataTransfer.files[0])
           }}
           className={`cursor-pointer rounded-xl border border-dashed px-4 py-8 text-center ${
-            dragging ? 'border-[#1677ff] bg-[#f1f7ff]' : 'border-[#bcd1ef] bg-[#fafdff]'
+            dragging
+              ? 'border-[#1677ff] bg-[#f1f7ff]'
+              : 'border-[#bcd1ef] bg-[#fafdff]'
           }`}
         >
           <div className="text-3xl text-[#1677ff]">⇧</div>
           <b>Choose a sales file or drop it here</b>
           <p className="mt-1 text-[#718096]">
-            CSV is read in your browser ·{' '}
+            Supports CSV, XLSX and XLS ·{' '}
             <a
               href={templateHref}
               download="sales_template.csv"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
               className="font-semibold text-[#1677ff]"
             >
-              Download template
+              Download CSV template
             </a>
           </p>
+
           <input
             ref={inputRef}
             type="file"
             accept=".csv,.xlsx,.xls"
             className="hidden"
-            onChange={(e) => {
-              readFile(e.target.files[0])
-              e.target.value = '' // lets you pick the same file again
+            onChange={(event) => {
+              readFile(event.target.files[0])
+              event.target.value = ''
             }}
           />
         </div>
 
         {file && (
           <div className="mt-4 flex items-center gap-3 rounded-[10px] border border-[#e5eaf2] bg-[#fafbfd] p-3.5">
-            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#eaf2ff] text-lg">📄</div>
+            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#eaf2ff] text-lg">
+              📄
+            </div>
+
             <div className="min-w-0 flex-1">
               <p className="truncate font-bold">{file.name}</p>
               <p className="mt-0.5 text-[11px] text-[#718096]">
                 {formatSize(file.size)} ·{' '}
                 {file.reading
                   ? 'Reading file…'
-                  : `${file.total} rows read · ${file.rows.length} valid · ${new Set(file.errors.map((e) => e.line)).size} with errors · ${file.warnings.length} warnings`}
+                  : `${file.total} rows read · ${file.rows.length} valid · ${
+                      new Set(file.errors.map((error) => error.line)).size
+                    } with errors · ${file.warnings.length} warnings`}
               </p>
             </div>
-            <Badge tone={fileStatus(file).tone}>{fileStatus(file).text}</Badge>
+
+            <Badge tone={fileStatus(file).tone}>
+              {fileStatus(file).text}
+            </Badge>
+
             <button
               onClick={clearFile}
               aria-label="Remove file"
@@ -266,10 +379,19 @@ export default function ImportCenter() {
         )}
 
         <div className="mt-4 flex justify-end gap-2">
-          <button className={altBtn} disabled={!file} onClick={clearFile}>
+          <button
+            className={altBtn}
+            disabled={!file}
+            onClick={clearFile}
+          >
             Clear
           </button>
-          <button className={primaryBtn} disabled={!importable.length} onClick={commit}>
+
+          <button
+            className={primaryBtn}
+            disabled={!importable.length || file?.reading}
+            onClick={commit}
+          >
             Import {importable.length} valid rows
           </button>
         </div>
@@ -278,7 +400,11 @@ export default function ImportCenter() {
       {file?.errors.length > 0 && (
         <Card
           title="Validation errors"
-          subtitle={`Fix these rows before importing them${file.errors.length > 15 ? ` (showing 15 of ${file.errors.length})` : ''}`}
+          subtitle={`Rows with errors cannot be imported${
+            file.errors.length > 15
+              ? ` (showing 15 of ${file.errors.length})`
+              : ''
+          }`}
         >
           <Table columns={errorColumns} rows={file.errors.slice(0, 15)} />
         </Card>
@@ -287,7 +413,7 @@ export default function ImportCenter() {
       {file?.warnings.length > 0 && (
         <Card
           title="Data quality warnings"
-          subtitle="Unusual rows found. Choose what to do before importing"
+          subtitle="Review unusual rows and choose whether to keep or exclude them"
         >
           <Table columns={warningColumns} rows={file.warnings} />
         </Card>
@@ -295,10 +421,16 @@ export default function ImportCenter() {
 
       <Card
         title="Data preview"
-        subtitle={file ? `First rows of ${file.name}` : 'Example of the expected format'}
+        subtitle={
+          file
+            ? `Valid rows from ${file.name}`
+            : 'Example of the expected format'
+        }
       >
         {previewRows.length === 0 ? (
-          <p className="py-6 text-center text-[#718096]">No valid rows to show.</p>
+          <p className="py-6 text-center text-[#718096]">
+            No valid rows to show.
+          </p>
         ) : (
           <Table columns={rowColumns} rows={previewRows.slice(0, 6)} />
         )}
@@ -306,10 +438,15 @@ export default function ImportCenter() {
 
       <Card
         title="Sales data management"
-        subtitle={`Review and remove imported records (showing ${Math.min(8, sales.length)} of ${sales.length})`}
+        subtitle={`Review and remove imported records (showing ${Math.min(
+          8,
+          sales.length
+        )} of ${sales.length})`}
       >
         {sales.length === 0 ? (
-          <p className="py-6 text-center text-[#718096]">No sales records yet. Import a file to add some.</p>
+          <p className="py-6 text-center text-[#718096]">
+            No sales records yet. Import a file to add some.
+          </p>
         ) : (
           <Table columns={salesColumns} rows={sales.slice(0, 8)} />
         )}
