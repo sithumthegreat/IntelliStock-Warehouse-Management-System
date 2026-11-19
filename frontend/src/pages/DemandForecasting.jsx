@@ -8,6 +8,11 @@ import usePersistentState from '../hooks/usePersistentState'
 
 import BusinessContextTab from './forecasting/BusinessContextTab'
 import DashboardTab from './forecasting/DashboardTab'
+import ModelManagementTab from './forecasting/ModelManagementTab'
+import ForecastHistoryTab from './forecasting/ForecastHistoryTab'
+import ForecastScheduleTab from './forecasting/ForecastScheduleTab'
+import ForecastApprovalTab from './forecasting/ForecastApprovalTab'
+import DemandAlertsTab from './forecasting/DemandAlertsTab'
 
 import { contextEvents } from '../data/forecastData'
 import { initialSales } from '../data/importData'
@@ -25,19 +30,16 @@ const TABS = [
 export default function DemandForecasting() {
   const [activeTab, setActiveTab] = useState('Dashboard')
 
-  // Persist business context events
   const [events, setEvents] = usePersistentState(
     'is_business_context_events',
     contextEvents
   )
 
-  // Persisted historical sales data
   const [sales] = usePersistentState(
     'is_sales',
     initialSales
   )
 
-  // Add a new business context event
   const addEvent = (event) => {
     setEvents((current) => [
       {
@@ -51,7 +53,6 @@ export default function DemandForecasting() {
     ])
   }
 
-  // Remove a business context event
   const removeEvent = (id) => {
     setEvents((current) =>
       current.filter((event) => event.id !== id)
@@ -61,14 +62,12 @@ export default function DemandForecasting() {
   return (
     <div className="space-y-4">
 
-      {/* Demand Forecasting Navigation */}
       <Tabs
         tabs={TABS}
         active={activeTab}
         onChange={setActiveTab}
       />
 
-      {/* Forecasting Dashboard */}
       {activeTab === 'Dashboard' && (
         <DashboardTab
           sales={sales}
@@ -77,7 +76,6 @@ export default function DemandForecasting() {
         />
       )}
 
-      {/* Business Context Management */}
       {activeTab === 'Business Context' && (
         <BusinessContextTab
           events={events}
@@ -86,16 +84,24 @@ export default function DemandForecasting() {
         />
       )}
 
-      {/* Remaining modules - future development */}
-      {![
-        'Dashboard',
-        'Business Context',
-      ].includes(activeTab) && (
-        <Card title={activeTab}>
-          <p className="text-[#718096]">
-            This module will be implemented in a later development batch.
-          </p>
-        </Card>
+      {activeTab === 'Models' && (
+        <ModelManagementTab sales={sales} />
+      )}
+
+      {activeTab === 'History' && (
+        <ForecastHistoryTab sales={sales} />
+      )}
+
+      {activeTab === 'Schedule' && (
+        <ForecastScheduleTab sales={sales} />
+      )}
+
+      {activeTab === 'Approval' && (
+        <ForecastApprovalTab sales={sales} />
+      )}
+
+      {activeTab === 'Alerts' && (
+        <DemandAlertsTab sales={sales} />
       )}
 
     </div>
