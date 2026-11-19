@@ -13,8 +13,8 @@ export const needsApproval = (role) => PRIVILEGED_ROLES.includes(role)
 
 export const ROLE_PAGES = {
   Administrator: ['/dashboard', '/analytics', '/what-if', '/administration', '/notifications', '/profile', '/help'],
-  'Warehouse Manager': ['/dashboard', '/forecasting', '/import', '/inventory', '/requests', '/suppliers', '/goods-received', '/analytics', '/what-if', '/notifications', '/profile', '/help'],
-  'Warehouse Staff': ['/dashboard', '/inventory', '/goods-received', '/notifications', '/profile', '/help'],
+  'Warehouse Manager': ['/dashboard', '/forecasting', '/import', '/inventory', '/requests', '/suppliers', '/goods-received', '/analytics', '/what-if', '/notifications', '/profile', '/help','/stock-movements'],
+  'Warehouse Staff': ['/dashboard', '/inventory', '/goods-received', '/notifications', '/profile', '/help','/stock-movements'],
   'Requesting Entity': ['/requests', '/notifications', '/profile', '/help'],
   Supplier: ['/supplier-portal', '/notifications', '/profile', '/help'],
 }

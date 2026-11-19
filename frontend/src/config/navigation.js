@@ -7,10 +7,10 @@ export const NAV_GROUPS = [
       { path: '/import', title: 'Import Center', icon: '⇪' },
       { path: '/inventory', title: 'Inventory Optimization', icon: '▤' },
       { path: '/requests', title: 'Requests', icon: '☷' },
+      { path: '/stock-movements', title: 'Stock Movements', icon: '⇅' },
       { path: '/suppliers', title: 'Supplier Selection', icon: '⇄' },
       { path: '/goods-received', title: 'Goods Received', icon: '✓' },
       { path: '/supplier-portal', title: 'Supplier Portal', icon: '⇄' },
-      
     ],
   },
   {
