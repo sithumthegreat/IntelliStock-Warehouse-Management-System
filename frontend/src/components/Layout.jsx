@@ -4,11 +4,11 @@ import Topbar from './Topbar'
 
 export default function Layout() {
   return (
-    <div className="shell">
+    <div className="min-h-screen">
       <Sidebar />
-      <div className="main">
+      <div className="ml-[245px] min-h-screen">
         <Topbar />
-        <main className="content">
+        <main className="p-7">
           <Outlet />
         </main>
       </div>

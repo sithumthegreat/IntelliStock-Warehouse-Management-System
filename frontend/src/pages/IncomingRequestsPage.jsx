@@ -96,14 +96,14 @@ export default function IncomingRequestsPage() {
           </p>
         </div>
 
-        {isRequester && (
+        {/* {isRequester && (
           <button 
             onClick={() => setIsModalOpen(true)}
             className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-colors"
           >
             New request
           </button>
-        )}
+        )} */}
       </div>
 
       {/* Summary Cards */}

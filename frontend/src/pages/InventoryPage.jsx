@@ -66,15 +66,10 @@ export default function InventoryPage() {
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center space-x-3 mb-1">
-            {/* <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saturday, 17 October 2026</span> */}
-            {/* <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase">Demo Environment</span> */}
           </div>
           <h1 className="text-3xl font-extrabold text-[#0f172a]">Inventory Optimization</h1>
           <p className="text-sm text-slate-500 mt-1">Monitor stock levels and replenishment recommendations.</p>
         </div>
-        {/* <button className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
-          + Add product
-        </button> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -150,9 +145,7 @@ export default function InventoryPage() {
             <thead>
               <tr className="bg-gray-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-gray-200">
                 <th className="p-4">Product</th>
-                <th className="p-4">Daily Demand</th>
-                <th className="p-4">Lead Time</th>
-                <th className="p-4">Safety Stock</th>
+                <th className="p-4">Next Month Demand</th>
                 <th className="p-4">Reorder Point</th>
                 <th className="p-4">EOQ</th>
                 <th className="p-4">Min - Max</th>
@@ -165,8 +158,6 @@ export default function InventoryPage() {
                 <tr key={index} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4 font-medium text-slate-700">{item.product}</td>
                   <td className="p-4 text-slate-600">{item.demand}</td>
-                  <td className="p-4 text-slate-500">{item.lead}</td>
-                  <td className="p-4 text-slate-600">{item.safety}</td>
                   <td className="p-4 text-slate-600">{item.reorder}</td>
                   <td className="p-4 text-slate-600">{item.eoq}</td>
                   <td className="p-4 text-slate-500">{item.minmax}</td>
@@ -181,9 +172,9 @@ export default function InventoryPage() {
             </tbody>
           </table>
         </div>
-        <div className="p-4 bg-blue-50/50 text-xs text-blue-600 border-t border-blue-100 m-4 rounded-lg">
+        {/* <div className="p-4 bg-blue-50/50 text-xs text-blue-600 border-t border-blue-100 m-4 rounded-lg">
           Safety stock = Z × σ × √lead time • Reorder point = demand × lead time + safety stock • EOQ = √(2DS / H). Values use illustrative demand parameters.
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -230,7 +221,7 @@ export default function InventoryPage() {
 
       <div className="flex justify-between text-xs text-slate-400 border-t border-gray-200 pt-6">
         <span>© 2026 IntelliStock - University project prototype</span>
-        <span>• Demo data - Not connected to live systems</span>
+        <span>Demo data - Not connected to live systems</span>
       </div>
     </div>
   )

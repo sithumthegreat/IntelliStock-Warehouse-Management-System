@@ -24,6 +24,14 @@
   color: var(--ink);
   background-color: var(--bg);
 }
+@theme {
+  --color-brand: #1677ff;
+  --color-ink: #172b4d;
+  --color-muted: #718096;
+  --color-line: #e5eaf2;
+  --color-surface: #f5f7fb;
+  --color-accent: #19b38a;
+}
 
 /* ========================================
    GLOBAL RESET
@@ -351,7 +359,6 @@ h3 {
 ======================================== */
 
 @media (max-width: 768px) {
-
   /* On small screens, use an overlay
      instead of shrinking the content. */
 
