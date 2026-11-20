@@ -1,340 +1,785 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 const suppliers = [
-  { name: "Ceylon Wholesale Ltd.", score: 94, lead: "3–4 days", delivery: "96%", terms: "Net 30" },
-  { name: "Metro Distributors", score: 89, lead: "2–5 days", delivery: "92%", terms: "Net 15" },
-  { name: "Lanka Consumer Goods", score: 84, lead: "4–6 days", delivery: "88%", terms: "Net 30" },
+  {
+    name: "Ceylon Wholesale Ltd.",
+    score: 94,
+    leadTime: "3–4 days",
+    delivery: "96%",
+    payment: "Net 30",
+  },
+  {
+    name: "Metro Distributors",
+    score: 89,
+    leadTime: "2–5 days",
+    delivery: "92%",
+    payment: "Net 15",
+  },
+  {
+    name: "Lanka Consumer Goods",
+    score: 84,
+    leadTime: "4–6 days",
+    delivery: "88%",
+    payment: "Net 30",
+  },
 ];
 
 const initialOrders = [
-  { number: "PO-2026-045", supplier: "Ceylon Wholesale Ltd.", items: 1, value: 95000, status: "Awaiting response" },
-  { number: "PO-2026-041", supplier: "Ceylon Wholesale Ltd.", items: 4, value: 186500, status: "Awaiting response" },
-  { number: "PO-2026-040", supplier: "Metro Distributors", items: 2, value: 74200, status: "Accepted" },
-  { number: "PO-2026-039", supplier: "Lanka Consumer Goods", items: 6, value: 231000, status: "In transit" },
+  {
+    number: "PO-2026-045",
+    supplier: "Ceylon Wholesale Ltd.",
+    itemName: "Premium Arabica Coffee",
+    quantity: 1,
+    value: 95000,
+    approvalStatus: "Pending",
+    trackingStatus: "In transit",
+    date: "20/10/2026",
+    customer: "Customer account",
+  },
+  {
+    number: "PO-2026-041",
+    supplier: "Ceylon Wholesale Ltd.",
+    itemName: "Organic Green Tea",
+    quantity: 4,
+    value: 186500,
+    approvalStatus: "Pending",
+    trackingStatus: "Pending",
+    date: "20/10/2026",
+    customer: "Customer account",
+  },
+  {
+    number: "PO-2026-040",
+    supplier: "Metro Distributors",
+    itemName: "Packaging Materials",
+    quantity: 2,
+    value: 74200,
+    approvalStatus: "Accepted",
+    trackingStatus: "Accepted",
+    date: "15/10/2026",
+    customer: "Customer account",
+  },
+  {
+    number: "PO-2026-039",
+    supplier: "Lanka Consumer Goods",
+    itemName: "Household Consumer Goods",
+    quantity: 6,
+    value: 231000,
+    approvalStatus: "Pending",
+    trackingStatus: "In transit",
+    date: "12/10/2026",
+    customer: "Customer account",
+  },
 ];
 
-const money = (value) =>
-  value ? `Rs. ${Number(value).toLocaleString("en-LK")}` : "Rs. 0";
+const trackingSteps = [
+  "Pending",
+  "Accepted",
+  "In transit",
+  "Delivered",
+];
 
-export default function App() {
-  const [orders, setOrders] = useState(initialOrders);
-  const [showForm, setShowForm] = useState(false);
-  const [supplier, setSupplier] = useState("");
-  const [items, setItems] = useState("1");
-  const [value, setValue] = useState("");
-  const [message, setMessage] = useState("");
-  const [selectedSupplier, setSelectedSupplier] = useState("");
+const currency = (value) =>
+  `Rs. ${Number(value).toLocaleString("en-US")}`;
 
-  function createOrder(event) {
-    event.preventDefault();
+function Sidebar({ onHome }) {
+  const groups = [
+    {
+      title: "WORKSPACE",
+      links: [
+        "Dashboard",
+        "Demand Forecasting",
+        "Import Center",
+        "Inventory Optimization",
+        "Incoming Requests",
+        "Supplier Selection",
+        "Goods Received",
+      ],
+    },
+    {
+      title: "INSIGHTS & CONTROL",
+      links: [
+        "Analytics",
+        "Supplier Reliability",
+        "Reports Center",
+        "What-If Simulator",
+      ],
+    },
+    {
+      title: "SUPPORT",
+      links: ["Help & Support"],
+    },
+  ];
 
-    if (!supplier) {
-      setMessage("Please select a supplier.");
+  return (
+    <aside className="fixed inset-y-0 left-0 z-20 flex w-56 flex-col border-r border-slate-200 bg-white">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">
+          IS
+        </div>
+        <div>
+          <p className="text-sm font-bold leading-tight">IntelliStock</p>
+          <p className="text-xs tracking-wider text-slate-500">
+            INVENTORY INTELLIGENCE
+          </p>
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
+        {groups.map((group) => (
+          <div key={group.title}>
+            <p className="mb-3 text-xs font-bold tracking-wider text-slate-400">
+              {group.title}
+            </p>
+
+            <div className="space-y-1">
+              {group.links.map((link) => (
+                <button
+                  key={link}
+                  onClick={onHome}
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
+                    link === "Supplier Selection"
+                      ? "bg-blue-50 font-semibold text-blue-600"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {link}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="border-t border-slate-100 p-4 text-xs text-slate-500">
+        <p className="font-semibold">Manager</p>
+        <p>Warehouse Manager · Demo account</p>
+      </div>
+    </aside>
+  );
+}
+
+function Header({ isDetails, role, setRole }) {
+  return (
+    <header className="fixed left-56 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
+      <div className="text-sm text-slate-500">
+        Workspace /{" "}
+        <span className="font-semibold text-slate-800">
+          {isDetails ? "Purchase Order Details" : "Supplier Selection & Procurement"}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+          DEMO ENVIRONMENT
+        </span>
+
+        {isDetails ? (
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium"
+          >
+            <option value="Supplier Portal">Supplier Portal</option>
+            <option value="Customer Portal">Customer Portal</option>
+          </select>
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600">
+              M
+            </span>
+            Warehouse Manager
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function StatCard({ title, value, description }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-sm text-slate-500">{title}</p>
+      <h3 className="mt-2 text-3xl font-bold text-slate-900">{value}</h3>
+      <p className="mt-2 text-sm text-emerald-600">{description}</p>
+    </div>
+  );
+}
+
+function SupplierComparison() {
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="p-5">
+        <h2 className="font-bold text-slate-800">Supplier comparison</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Compare supplier performance and indicative terms.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <tr>
+              <th className="px-5 py-4">Supplier</th>
+              <th className="px-5 py-4">Score</th>
+              <th className="px-5 py-4">Lead time</th>
+              <th className="px-5 py-4">On-time delivery</th>
+              <th className="px-5 py-4">Payment terms</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {suppliers.map((supplier) => (
+              <tr key={supplier.name} className="border-t border-slate-100">
+                <td className="px-5 py-5 font-semibold">{supplier.name}</td>
+                <td className="px-5 py-5">{supplier.score}</td>
+                <td className="px-5 py-5">{supplier.leadTime}</td>
+                <td className="px-5 py-5">{supplier.delivery}</td>
+                <td className="px-5 py-5">{supplier.payment}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function PurchaseOrders({
+  orders,
+  setOrders,
+  onCreate,
+}) {
+  const changeSupplier = (number, supplier) => {
+    setOrders((previous) =>
+      previous.map((order) =>
+        order.number === number ? { ...order, supplier } : order
+      )
+    );
+  };
+
+  const changeApproval = (number, approvalStatus) => {
+    setOrders((previous) =>
+      previous.map((order) =>
+        order.number === number
+          ? { ...order, approvalStatus }
+          : order
+      )
+    );
+  };
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="p-5">
+        <h2 className="font-bold text-slate-800">Purchase orders</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Track procurement lifecycle.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1050px] text-left text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <tr>
+              <th className="px-5 py-4">PO Number</th>
+              <th className="px-5 py-4">Supplier</th>
+              <th className="px-5 py-4">Item name</th>
+              <th className="px-5 py-4">Quantity</th>
+              <th className="px-5 py-4">Value</th>
+              <th className="px-5 py-4">Update status</th>
+              <th className="px-5 py-4">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {orders.map((order) => (
+              <tr
+                key={order.number}
+                className="border-t border-slate-100 hover:bg-slate-50"
+              >
+                <td className="whitespace-nowrap px-5 py-6 font-bold">
+                  {order.number}
+                </td>
+
+                <td className="px-5 py-6">
+                  <select
+                    value={order.supplier}
+                    onChange={(e) =>
+                      changeSupplier(order.number, e.target.value)
+                    }
+                    className="w-52 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  >
+                    {suppliers.map((supplier) => (
+                      <option key={supplier.name}>
+                        {supplier.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+
+                <td className="px-5 py-6">{order.itemName}</td>
+
+                <td className="px-5 py-6">{order.quantity}</td>
+
+                <td className="whitespace-nowrap px-5 py-6">
+                  {currency(order.value)}
+                </td>
+
+                <td className="px-5 py-6">
+                  <select
+                    value={order.approvalStatus}
+                    onChange={(e) =>
+                      changeApproval(order.number, e.target.value)
+                    }
+                    className="w-36 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                  </select>
+                </td>
+
+                <td className="px-5 py-6">
+                  <button
+                    onClick={() => onCreate(order)}
+                    className="whitespace-nowrap rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+                  >
+                    Create purchase order
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="border-t border-slate-100 px-5 py-4 text-sm text-slate-400">
+        {orders.length} open orders · Demo data
+      </div>
+    </section>
+  );
+}
+
+function CreateOrderModal({ order, onClose, onSubmit }) {
+  const [supplier, setSupplier] = useState(order.supplier);
+  const [itemName] = useState(order.itemName);
+  const [quantity, setQuantity] = useState(String(order.quantity));
+  const [unitPrice, setUnitPrice] = useState(
+    String(Math.round(order.value / Math.max(order.quantity, 1)))
+  );
+
+  const total = Math.max(0, Number(quantity) || 0) *
+    Math.max(0, Number(unitPrice) || 0);
+
+  const submit = (e) => {
+    e.preventDefault();
+
+    if (Number(quantity) <= 0 || Number(unitPrice) <= 0) {
+      alert("Please enter a valid quantity and unit price.");
       return;
     }
 
-    const nextNumber = 46 + orders.length - initialOrders.length;
-
-    const newOrder = {
-      number: `PO-2026-${String(nextNumber).padStart(3, "0")}`,
+    onSubmit({
+      ...order,
       supplier,
-      items: Number(items),
-      value: Number(value || 0),
-      status: "Awaiting response",
-    };
-
-    setOrders((current) => [newOrder, ...current]);
-    setMessage(`${newOrder.number} created successfully.`);
-    setShowForm(false);
-    setSupplier("");
-    setItems("1");
-    setValue("");
-  }
-
-  function updateStatus(number, status) {
-    setOrders((current) =>
-      current.map((order) =>
-        order.number === number ? { ...order, status } : order
-      )
-    );
-  }
-
-  const openOrders = orders.filter(
-    (order) => !["Delivered", "Cancelled"].includes(order.status)
-  ).length;
-
-  const inputStyle =
-    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
-
-  const cardStyle =
-    "rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
-
-  const buttonStyle =
-    "inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700";
+      itemName,
+      quantity: Number(quantity),
+      value: total,
+      approvalStatus: "Pending",
+      trackingStatus: "Pending",
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 md:flex">
-      <aside className="w-full shrink-0 border-r border-slate-200 bg-white p-5 md:min-h-screen md:w-56">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="rounded-lg bg-blue-600 p-3 font-bold text-white">IS</div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-2xl rounded-2xl bg-white p-7 shadow-2xl"
+      >
+        <div className="mb-6 flex items-start justify-between">
           <div>
-            <h2 className="font-bold">IntelliStock</h2>
-            <p className="text-[9px] tracking-widest text-slate-500">
-              INVENTORY INTELLIGENCE
+            <h2 className="text-2xl font-bold">Create purchase order</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Enter the item and supplier details.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-2xl text-slate-400 hover:text-slate-700"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="space-y-5">
+          <div>
+            <label className="mb-2 block text-sm font-semibold">Supplier</label>
+            <select
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-4 py-3"
+            >
+              {suppliers.map((s) => (
+                <option key={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold">Item name</label>
+            <input
+              value={itemName}
+              readOnly
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+            />
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-semibold">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-4 py-3"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold">
+                Unit price (Rs.)
+              </label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={unitPrice}
+                onChange={(e) => setUnitPrice(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-4 py-3"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-blue-50 p-5">
+            <p className="text-sm text-slate-600">Estimated order value</p>
+            <p className="mt-2 text-3xl font-bold text-blue-600">
+              {currency(total)}
             </p>
           </div>
         </div>
 
-        <p className="mb-3 text-xs font-bold tracking-wider text-slate-400">
-          WORKSPACE
-        </p>
-
-        {[
-          "Dashboard",
-          "Demand Forecasting",
-          "Import Center",
-          "Inventory Optimization",
-          "Incoming Requests",
-          "Supplier Selection",
-          "Goods Received",
-        ].map((item) => (
+        <div className="mt-7 flex justify-end gap-3 border-t border-slate-100 pt-5">
           <button
-            key={item}
-            onClick={() => {
-              if (item !== "Supplier Selection") {
-                setMessage(`${item} is not implemented in this page.`);
-              } else {
-                setMessage("");
-              }
-            }}
-            className={`mb-1 w-full rounded-lg px-3 py-2.5 text-left text-sm ${
-              item === "Supplier Selection"
-                ? "bg-blue-50 font-semibold text-blue-600"
-                : "text-slate-600 hover:bg-slate-50"
-            }`}
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-slate-200 px-5 py-3 font-semibold"
           >
-            {item}
+            Cancel
           </button>
-        ))}
 
-        <p className="mb-3 mt-7 text-xs font-bold tracking-wider text-slate-400">
-          INSIGHTS & CONTROL
-        </p>
-        {["Analytics", "Supplier Reliability", "Reports Center", "What-If Simulator"].map((item) => (
-          <div key={item} className="px-3 py-2.5 text-sm text-slate-500">
-            {item}
-          </div>
-        ))}
-      </aside>
+          <button
+            type="submit"
+            className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+          >
+            Submit order
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
-      <main className="min-w-0 flex-1">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-4">
-          <p className="text-sm">
-            <span className="text-slate-400">Workspace / </span>
-            <strong>Supplier Selection & Procurement</strong>
+function PurchaseOrderDetails({
+  order,
+  role,
+  setRole,
+  onBack,
+  onStatusChange,
+}) {
+  const currentStep = trackingSteps.indexOf(order.trackingStatus);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Procurement / Order Details
           </p>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="rounded-full bg-emerald-50 px-3 py-2 font-semibold text-emerald-700">
-              DEMO ENVIRONMENT
-            </span>
-            <span className="rounded-full bg-blue-100 p-2 font-bold text-blue-600">M</span>
-            <span className="text-slate-600">Warehouse Manager</span>
-          </div>
-        </header>
+          <h1 className="mt-2 text-3xl font-bold">Purchase Order Details</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Review the order and update delivery progress.
+          </p>
+        </div>
 
-        <div className="mx-auto max-w-screen-2xl space-y-6 p-5 md:p-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="mb-2 text-xs font-bold tracking-wider text-slate-400">
-                MONDAY, 19 OCTOBER 2026
-              </p>
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                Supplier Selection & Procurement
-              </h1>
-              <p className="mt-2 text-sm text-slate-500">
-                Compare suppliers and manage purchase orders.
-              </p>
-            </div>
-            <button className={buttonStyle} onClick={() => setShowForm(true)}>
-              + Create purchase order
-            </button>
+        <button
+          onClick={onBack}
+          className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50"
+        >
+          ← Back to purchase orders
+        </button>
+      </div>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-slate-500">Purchase order number</p>
+            <h2 className="text-2xl font-bold">{order.number}</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Created on {order.date}
+            </p>
           </div>
 
-          {message && (
-            <div role="status" className="flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
-              {message}
-              <button onClick={() => setMessage("")} aria-label="Dismiss message">×</button>
+          <span className="rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700">
+            {order.trackingStatus}
+          </span>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 text-lg font-bold">Order information</h2>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ["Supplier", order.supplier],
+            ["Customer", order.customer],
+            ["Item name", order.itemName],
+            ["Quantity", order.quantity],
+            ["Total order value", currency(order.value)],
+            ["Order reference", order.number],
+            ["Order date", order.date],
+            ["Current status", order.trackingStatus],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <p className="text-sm text-slate-500">{label}</p>
+              <p className="mt-2 text-sm font-semibold">{value}</p>
             </div>
-          )}
+          ))}
+        </div>
+      </section>
 
-          <section className="grid gap-4 md:grid-cols-3">
-            <article className={cardStyle}>
-              <p className="text-sm text-slate-500">Active suppliers</p>
-              <p className="mt-2 text-3xl font-bold">12</p>
-              <p className="mt-2 text-xs text-emerald-600">Demo directory</p>
-            </article>
-            <article className={cardStyle}>
-              <p className="text-sm text-slate-500">Open purchase orders</p>
-              <p className="mt-2 text-3xl font-bold">{openOrders}</p>
-              <p className="mt-2 text-xs text-emerald-600">Across suppliers</p>
-            </article>
-            <article className={cardStyle}>
-              <p className="text-sm text-slate-500">Average lead time</p>
-              <p className="mt-2 text-3xl font-bold">4.8 days</p>
-              <p className="mt-2 text-xs text-emerald-600">Illustrative estimate</p>
-            </article>
-          </section>
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold">Order tracking</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Follow the order from supplier response through delivery.
+            </p>
+          </div>
 
-          <section className={cardStyle}>
-            <div className="mb-5">
-              <h2 className="font-bold">Supplier comparison</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Compare supplier performance and indicative terms
-              </p>
-            </div>
+          <span className="rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+            Step {Math.max(1, currentStep + 1)} of 4
+          </span>
+        </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-slate-50 text-[11px] text-slate-500">
-                  <tr>
-                    {["SUPPLIER", "SCORE", "LEAD TIME", "ON-TIME DELIVERY", "PAYMENT TERMS", "ACTION"].map((heading) => (
-                      <th key={heading} className="px-3 py-3 font-semibold">{heading}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {suppliers.map((entry) => (
-                    <tr key={entry.name} className="border-b border-slate-100">
-                      <td className="px-3 py-4 font-semibold">{entry.name}</td>
-                      <td className="px-3 py-4">{entry.score}</td>
-                      <td className="px-3 py-4">{entry.lead}</td>
-                      <td className="px-3 py-4">{entry.delivery}</td>
-                      <td className="px-3 py-4">{entry.terms}</td>
-                      <td className="px-3 py-4">
-                        <button
-                          className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50"
-                          onClick={() => {
-                            setSelectedSupplier(entry.name);
-                            setSupplier(entry.name);
-                            setShowForm(true);
-                          }}
-                        >
-                          Select
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+        <div className="relative mt-10">
+          <div className="absolute left-[12.5%] right-[12.5%] top-5 h-1 rounded-full bg-slate-200" />
 
-          <section className={cardStyle}>
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div
+            className="absolute left-[12.5%] top-5 h-1 rounded-full bg-blue-600 transition-all"
+            style={{ width: `${Math.max(0, currentStep) * 25}%` }}
+          />
+
+          <div className="relative grid grid-cols-4 gap-2">
+            {trackingSteps.map((step, index) => {
+              const completed = currentStep > index;
+              const active = currentStep === index;
+
+              return (
+                <div key={step} className="flex flex-col items-center text-center">
+                  <div
+                    className={`z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 text-sm font-bold ${
+                      completed || active
+                        ? "border-blue-100 bg-blue-600 text-white"
+                        : "border-slate-100 bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    {completed ? "✓" : index + 1}
+                  </div>
+
+                  <p
+                    className={`mt-3 text-xs font-bold sm:text-sm ${
+                      completed || active ? "text-blue-700" : "text-slate-400"
+                    }`}
+                  >
+                    {step}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    {completed ? "Completed" : active ? "Current" : "Pending"}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {role === "Supplier Portal" ? (
+          <div className="mt-9 border-t border-slate-100 pt-6">
+            <h3 className="font-bold">Update tracking status</h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Select the latest delivery status for this order.
+            </p>
+
+            <label
+              htmlFor="tracking-status"
+              className="mt-4 block text-sm font-semibold"
+            >
+              Delivery status
+            </label>
+
+            <select
+              id="tracking-status"
+              value={order.trackingStatus}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="mt-2 w-full max-w-md rounded-lg border border-slate-200 bg-white px-4 py-3 outline-none focus:border-blue-500"
+            >
+              {trackingSteps.map((step) => (
+                <option key={step} value={step}>
+                  {step}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-3 text-xs text-slate-400">
+              Changes immediately update this demo order's tracking timeline.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
+            You are viewing this order as a customer. You can view the order
+            information and delivery progress. Tracking updates are managed
+            by the supplier.
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export default function App() {
+  const [orders, setOrders] = useState(initialOrders);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [modalOrder, setModalOrder] = useState(null);
+  const [role, setRole] = useState("Supplier Portal");
+
+  const totalValue = orders.reduce((sum, order) => sum + order.value, 0);
+
+  const submitOrder = (updatedOrder) => {
+    setOrders((previous) =>
+      previous.map((order) =>
+        order.number === updatedOrder.number
+          ? updatedOrder
+          : order
+      )
+    );
+
+    setModalOrder(null);
+    setSelectedOrder(updatedOrder);
+    setRole("Supplier Portal");
+  };
+
+  const updateTrackingStatus = (newStatus) => {
+    setOrders((previous) =>
+      previous.map((order) =>
+        order.number === selectedOrder.number
+          ? { ...order, trackingStatus: newStatus }
+          : order
+      )
+    );
+
+    setSelectedOrder((previous) => ({
+      ...previous,
+      trackingStatus: newStatus,
+    }));
+  };
+
+  const goBack = () => {
+    setSelectedOrder(null);
+    setRole("Supplier Portal");
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800">
+      <Sidebar onHome={goBack} />
+
+      <Header
+        isDetails={Boolean(selectedOrder)}
+        role={role}
+        setRole={setRole}
+      />
+
+      <main className="ml-56 pt-16">
+        <div className="mx-auto max-w-[1500px] space-y-6 p-6 lg:p-8">
+          {selectedOrder ? (
+            <PurchaseOrderDetails
+              order={selectedOrder}
+              role={role}
+              setRole={setRole}
+              onBack={goBack}
+              onStatusChange={updateTrackingStatus}
+            />
+          ) : (
+            <>
               <div>
-                <h2 className="font-bold">Purchase orders</h2>
-                <p className="mt-1 text-sm text-slate-500">Track procurement lifecycle</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  DEMO ENVIRONMENT
+                </p>
+
+                <h1 className="mt-2 text-3xl font-bold">
+                  Supplier Selection & Procurement
+                </h1>
+
+                <p className="mt-2 text-slate-500">
+                  Compare suppliers and manage purchase orders.
+                </p>
               </div>
-              <button className={buttonStyle} onClick={() => setShowForm(true)}>
-                + Create purchase order
-              </button>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[750px] text-left text-sm">
-                <thead className="bg-slate-50 text-[11px] text-slate-500">
-                  <tr>
-                    {["PO NUMBER", "SUPPLIER", "ITEMS", "VALUE", "STATUS", "UPDATE STATUS"].map((heading) => (
-                      <th key={heading} className="px-3 py-3 font-semibold">{heading}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.number} className="border-b border-slate-100">
-                      <td className="px-3 py-4 font-semibold">{order.number}</td>
-                      <td className="px-3 py-4">{order.supplier}</td>
-                      <td className="px-3 py-4">{order.items}</td>
-                      <td className="px-3 py-4">{money(order.value)}</td>
-                      <td className="px-3 py-4">
-                        <span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-4">
-                        <select
-                          className="rounded-md border border-slate-200 bg-white p-2 text-xs"
-                          value={order.status}
-                          aria-label={`Update ${order.number} status`}
-                          onChange={(event) => updateStatus(order.number, event.target.value)}
-                        >
-                          {["Awaiting response", "Accepted", "In transit", "Delivered", "Cancelled"].map((status) => (
-                            <option key={status}>{status}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+              <div className="grid gap-5 md:grid-cols-3">
+                <StatCard
+                  title="Active suppliers"
+                  value="12"
+                  description="Demo directory"
+                />
 
-          <footer className="flex flex-wrap justify-between gap-2 text-xs text-slate-400">
-            <span>© 2026 IntelliStock · University project prototype</span>
-            <span>Demo data · Not connected to live systems</span>
-          </footer>
+                <StatCard
+                  title="Open purchase orders"
+                  value={orders.length}
+                  description="Across suppliers"
+                />
+
+                <StatCard
+                  title="Average lead time"
+                  value="5 days"
+                  description="Illustrative estimate"
+                />
+              </div>
+
+              <SupplierComparison />
+
+              <PurchaseOrders
+                orders={orders}
+                setOrders={setOrders}
+                onCreate={setModalOrder}
+              />
+
+              <footer className="flex flex-wrap justify-between gap-3 text-xs text-slate-400">
+                <p>© 2026 IntelliStock · University project prototype</p>
+                <p>Demo data · Not connected to live systems</p>
+              </footer>
+            </>
+          )}
         </div>
       </main>
 
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <section className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <div className="mb-6 flex items-start justify-between">
-              <div>
-                <h2 className="text-xl font-bold">Create purchase order</h2>
-                <p className="mt-1 text-sm text-slate-500">Enter order details below.</p>
-              </div>
-              <button onClick={() => setShowForm(false)} className="text-xl text-slate-400" aria-label="Close form">×</button>
-            </div>
-
-            <form onSubmit={createOrder} className="space-y-5">
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">Supplier *</span>
-                <select
-                  required
-                  className={inputStyle}
-                  value={supplier}
-                  onChange={(event) => setSupplier(event.target.value)}
-                >
-                  <option value="">Choose a supplier</option>
-                  {suppliers.map((entry) => (
-                    <option key={entry.name} value={entry.name}>{entry.name}</option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium">Number of items *</span>
-                  <input className={inputStyle} type="number" min="1" required value={items} onChange={(event) => setItems(event.target.value)} />
-                </label>
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium">Order value (LKR)</span>
-                  <input className={inputStyle} type="number" min="0" placeholder="125000" value={value} onChange={(event) => setValue(event.target.value)} />
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-                <button type="button" className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold" onClick={() => setShowForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className={buttonStyle}>Create order</button>
-              </div>
-            </form>
-          </section>
-        </div>
+      {modalOrder && (
+        <CreateOrderModal
+          order={modalOrder}
+          onClose={() => setModalOrder(null)}
+          onSubmit={submitOrder}
+        />
       )}
     </div>
   );
