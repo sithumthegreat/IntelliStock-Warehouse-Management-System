@@ -1,8 +1,19 @@
 import React from 'react';
 import { useRole } from '../context/RoleContext';
 
+import { useLocation } from 'react-router-dom'
+import { NAV_GROUPS } from '../config/navigation'
+
 export default function Topbar() {
   const { currentRole, setCurrentRole, ROLES } = useRole();
+
+  const location = useLocation()
+
+const currentPage = NAV_GROUPS
+  .flatMap((group) => group.items)
+  .find((item) => item.path === location.pathname)
+
+const pageTitle = currentPage?.title || 'Dashboard'
 
   return (
     <div className="h-[70px] bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-10">
@@ -10,7 +21,9 @@ export default function Topbar() {
       {/* Left side: Breadcrumbs (Static for now, can be dynamic later) */}
       <div className="text-sm">
         <span className="text-slate-400">Workspace / </span>
-        <span className="font-bold text-slate-800">Incoming Requests</span>
+        <span className="font-bold text-slate-800">
+  {pageTitle}
+</span>
       </div>
 
       {/* Right side: Role Switcher & Profile */}
@@ -42,6 +55,8 @@ export default function Topbar() {
             <option key={role} value={role}>{role}</option>
           ))}
         </select>
+
+
       </div>
     </div>
   );

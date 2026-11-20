@@ -8,12 +8,14 @@ import IncomingRequestsPage from './pages/IncomingRequestsPage'
 import WhatIfSimulator from './pages/WhatIfSimulator'
 import Placeholder from './pages/Placeholder'
 import { NAV_GROUPS } from './config/navigation'
+import AnalyticsPage from './pages/AnalyticsPage'
 
 const implementedPaths = [
   '/forecasting',
   '/inventory',
   '/requests',
   '/what-if',
+  '/analytics'
 ]
 
 const otherPages = NAV_GROUPS
@@ -32,7 +34,7 @@ export default function App() {
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/requests" element={<IncomingRequestsPage />} />
             <Route path="/what-if" element={<WhatIfSimulator />} />
-
+            <Route path="/analytics" element={<AnalyticsPage />} />
             {otherPages.map((page) => (
               <Route
                 key={page.path}
