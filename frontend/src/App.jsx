@@ -13,6 +13,7 @@ import StockMovementsPage from './pages/StockMovementsPage' // 1. Added missing 
 import Placeholder from './pages/Placeholder'
 import { NAV_GROUPS } from './config/navigation'
 import ImportCenter from './pages/ImportCenter'
+import WhatIfSimulator from './pages/WhatIfSimulator'
 
 // 2. Excluded '/stock-movements' so it doesn't render a Placeholder route
 const otherPages = NAV_GROUPS.flatMap((g) => g.items).filter(
@@ -21,7 +22,8 @@ const otherPages = NAV_GROUPS.flatMap((g) => g.items).filter(
     i.path !== '/inventory' &&
     i.path !== '/requests' &&
     i.path !== '/import' &&
-    i.path !== '/stock-movements'
+    i.path !== '/stock-movements' &&
+    i.path !== '/what-if'
 )
 
 function HomeRedirect() {
@@ -45,6 +47,7 @@ export default function App() {
                 <Route path="/requests" element={<IncomingRequestsPage />} />
                 <Route path="/stock-movements" element={<StockMovementsPage />} />
                 <Route path="/import" element={<ImportCenter />} />
+                <Route path="/what-if" element={<WhatIfSimulator />} />
                 {otherPages.map((p) => (
                   <Route key={p.path} path={p.path} element={<Placeholder title={p.title} />} />
                 ))}
