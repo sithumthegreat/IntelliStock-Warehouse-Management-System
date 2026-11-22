@@ -250,6 +250,7 @@ export default function AnalyticsPage() {
             <span className="analytics-insight-kicker">INVENTORY RISK</span>
             <h3>{riskCount} products at or below reorder threshold</h3>
             <p>Review current stock positions and replenishment priorities.</p>
+            <br></br>
             <button onClick={() => navigate('/inventory')}>Review inventory</button>
           </div>
           <div className="analytics-insight">
@@ -262,12 +263,13 @@ export default function AnalyticsPage() {
             <span className="analytics-insight-kicker">FORECASTING</span>
             <h3>{percent(view.forecastAccuracy)} historical accuracy</h3>
             <p>Inspect forecast quality before using demand projections for planning.</p>
+            <br></br>
             <button onClick={() => navigate('/forecasting')}>Open forecasting</button>
           </div>
         </div>
       </section>
 
-      <p className="analytics-demo-note">Demo dataset: Apr–Oct 2026 actual samples; Nov 2026–Mar 2027 illustrative forecasts. The 3/6/12-month control changes the chart window and available historical KPI lookback; the future cost outlook remains the next quarter. No live backend is connected.</p>
+
     </div>
   )
 }
