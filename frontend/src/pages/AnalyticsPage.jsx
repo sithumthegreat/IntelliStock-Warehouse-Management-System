@@ -250,20 +250,22 @@ export default function AnalyticsPage() {
             <span className="analytics-insight-kicker">INVENTORY RISK</span>
             <h3>{riskCount} products at or below reorder threshold</h3>
             <p>Review current stock positions and replenishment priorities.</p>
-            <br></br>
+           
             <button onClick={() => navigate('/inventory')}>Review inventory</button>
           </div>
+
           <div className="analytics-insight">
             <span className="analytics-insight-kicker">COST PLANNING</span>
             <h3>{money(nextQuarterCost)} estimated quarterly inventory cost</h3>
             <p>Review the assumptions behind holding, ordering and possible stockout costs.</p>
             <button onClick={() => navigate('/what-if')}>Open What-If Simulator</button>
           </div>
+
           <div className="analytics-insight">
             <span className="analytics-insight-kicker">FORECASTING</span>
             <h3>{percent(view.forecastAccuracy)} historical accuracy</h3>
             <p>Inspect forecast quality before using demand projections for planning.</p>
-            <br></br>
+           
             <button onClick={() => navigate('/forecasting')}>Open forecasting</button>
           </div>
         </div>
